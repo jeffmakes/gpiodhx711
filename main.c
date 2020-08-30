@@ -11,7 +11,6 @@ typedef struct hx711_handle_t
 	struct gpiod_chip *chip;
 	struct gpiod_line *pd_sck;
 	struct gpiod_line *dout;
-	char* chipname;
 	int32_t gain;
 	uint32_t offset;
 	uint32_t scale;
@@ -20,27 +19,29 @@ typedef struct hx711_handle_t
 hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 
 {
 	int32_t req;
+	char* chipname = "gpiochip0";
 
 	hx711_handle_t* handle = malloc(sizeof(hx711_handle_t));
-	if (handle == NULL){
+	if (!handle){
 		perror("malloc failed");
 		goto end;
 	}
+	printf("got to here");
 
-	handle->chip = gpiod_chip_open_by_name(handle->chipname);
+	handle->chip = gpiod_chip_open_by_name(chipname);
 	if (!handle->chip) {
 		perror("Open chip failed\n");
 		goto end;
 	}
 
 	handle->pd_sck = gpiod_chip_get_line(handle->chip, gpio_pd_sck);
-	if (handle->pd_sck) {
+	if (!handle->pd_sck) {
 		perror("Get clock line failed\n");
 		goto close_chip;
 	}
 
 	handle->dout = gpiod_chip_get_line(handle->chip, gpio_dout);
-	if (handle->dout) {
+	if (!handle->dout) {
 		perror("Get data line failed\n");
 		goto close_chip;
 	}
@@ -61,6 +62,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 	handle->offset = 0;
 	handle->scale = 1;	
 	
+
 	return handle;
 
 release_line:
@@ -83,23 +85,21 @@ void hx711_deinit(hx711_handle_t* hx)
 
 int main(int argc, char **argv)
 {
-	char *chipname = "gpiochip0";
+//	char *chipname = "gpiochip0";
 	unsigned int line_num = 7;	// GPIO Pin number 
 	unsigned int val;
 	struct gpiod_chip *chip;
 	struct gpiod_line *line;
 	int i, ret;
 
+	printf("got to here");
 	hx711_handle_t* scale0 = hx711_init(4, 14);
-	scale0->chipname = chipname;
-	hx711_handle_t* scale1 = hx711_init(15, 17);
-	scale1->gain = 9000;
+	//hx711_handle_t* scale1 = hx711_init(15, 17);
 	
-	printf("%s\n", scale0->chipname);
-	printf("%d\n", scale1->gain);
+	printf("%d\n", scale0->gain);
 	
 	hx711_deinit(scale0);
-	hx711_deinit(scale1);
+	//hx711_deinit(scale1);
 
 	return 0;
 
