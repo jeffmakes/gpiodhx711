@@ -92,7 +92,7 @@ int32_t hx711_read(hx711_handle_t* hx)
 	uint32_t i;
 	uint32_t bits = 0;
 
-	while ( !hx711_isready(hx) );
+	while ( !hx711_isready(hx) ); //TODO: add a timeout?
 
 	for (i = 0; i < 24; i++)
 	{
@@ -106,7 +106,7 @@ int32_t hx711_read(hx711_handle_t* hx)
 		gpiod_line_set_value(hx->pd_sck, 1);
 		gpiod_line_set_value(hx->pd_sck, 0);
 	}
-	//pad out to 32 bits 2's complement
+	// TODO: pad out to 32 bits 2's complement
 	//... figure this out later... see python driver
 	return bits;	
 }
