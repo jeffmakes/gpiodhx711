@@ -82,21 +82,61 @@ void hx711_deinit(hx711_handle_t* hx)
 	free(hx);
 }
 
+bool hx711_isready(hx711_handle_t* hx)
+{
+	return (gpiod_line_get_value(hx->dout) == 0);
+}
+
+int32_t hx711_read(hx711_handle_t* hx)
+{
+	uint32_t i;
+	uint32_t bits = 0;
+
+	while ( !hx711_isready(hx) );
+
+	for (i = 0; i < 24; i++)
+	{
+		gpiod_line_set_value(hx->pd_sck, 1);
+		bits |= gpiod_line_get_value(hx->dout) << i;
+		gpiod_line_set_value(hx->pd_sck, 0);
+	}
+       	//set channel and gain factor for next reading
+	for (i = 0; i < hx->gain; i++)
+	{
+		gpiod_line_set_value(hx->pd_sck, 1);
+		gpiod_line_set_value(hx->pd_sck, 0);
+	}
+	//pad out to 32 bits 2's complement
+	//... figure this out later... see python driver
+	return bits;	
+}
+
 
 int main(int argc, char **argv)
 {
-//	char *chipname = "gpiochip0";
-	unsigned int line_num = 7;	// GPIO Pin number 
+	char *chipname = "gpiochip0";
+	unsigned int line_num = 12;	// GPIO Pin number for 3v3_EN
 	unsigned int val;
 	struct gpiod_chip *chip;
 	struct gpiod_line *line;
 	int i, ret;
 
+	//turn on 3v3 rail
+	chip = gpiod_chip_open_by_name(chipname);
+	line= gpiod_chip_get_line(chip, line_num);
+	gpiod_line_request_output(line, CONSUMER, 0);
+	gpiod_line_set_value(line, 1);
+
+
 	printf("got to here");
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	//hx711_handle_t* scale1 = hx711_init(15, 17);
 	
-	printf("%d\n", scale0->gain);
+	for (i = 0; i<60; i++)
+	{
+		printf("%d\n", hx711_read(scale0));
+		sleep(1);
+	}
 	
 	hx711_deinit(scale0);
 	//hx711_deinit(scale1);
