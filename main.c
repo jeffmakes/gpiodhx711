@@ -26,7 +26,6 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 		perror("malloc failed");
 		goto end;
 	}
-	printf("got to here");
 
 	handle->chip = gpiod_chip_open_by_name(chipname);
 	if (!handle->chip) {
@@ -87,28 +86,47 @@ bool hx711_isready(hx711_handle_t* hx)
 	return (gpiod_line_get_value(hx->dout) == 0);
 }
 
+void printbin(uint32_t p)
+{	
+	for (int i = 31 ; i>-1; i--)
+	{
+		if(p & (1<<i))
+			printf("1");	
+		else
+			printf("0");
+	}
+	printf("\n");
+}
+
 int32_t hx711_read(hx711_handle_t* hx)
 {
 	uint32_t i;
-	uint32_t bits = 0;
+	int32_t val = 0;
 
 	while ( !hx711_isready(hx) ); //TODO: add a timeout?
 
+	//clock out data
 	for (i = 0; i < 24; i++)
 	{
 		gpiod_line_set_value(hx->pd_sck, 1);
-		bits |= gpiod_line_get_value(hx->dout) << i;
+		val |= gpiod_line_get_value(hx->dout); 
+		val <<= 1;
 		gpiod_line_set_value(hx->pd_sck, 0);
 	}
-       	//set channel and gain factor for next reading
+       	
+	//set channel and gain factor for next reading
 	for (i = 0; i < hx->gain; i++)
 	{
 		gpiod_line_set_value(hx->pd_sck, 1);
 		gpiod_line_set_value(hx->pd_sck, 0);
 	}
-	// TODO: pad out to 32 bits 2's complement
-	//... figure this out later... see python driver
-	return bits;	
+	
+	// pad to 32-bit 2's complement
+	if (val & (1<<23))
+	{
+		val |= 0xff000000;
+	}
+	return val;
 }
 
 
@@ -128,14 +146,13 @@ int main(int argc, char **argv)
 	gpiod_line_set_value(line, 1);
 
 
-	printf("got to here");
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	//hx711_handle_t* scale1 = hx711_init(15, 17);
 	
-	for (i = 0; i<60; i++)
+	for (i = 0; i<600; i++)
 	{
-		printf("%d\n", hx711_read(scale0));
-		sleep(1);
+		printf("%d %d\n", i, hx711_read(scale0));
+		sleep(0.1);
 	}
 	
 	hx711_deinit(scale0);
