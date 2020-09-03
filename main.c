@@ -129,6 +129,20 @@ int32_t hx711_read(hx711_handle_t* hx)
 	return val;
 }
 
+#define NUM_AVERAGES 10 
+int32_t hx711_read_average(hx711_handle_t* hx)
+{
+	uint32_t times;
+	int32_t res = 0;
+
+	times = NUM_AVERAGES;
+	while(times--)
+	{
+		res += hx711_read(hx);
+	}
+	res /= NUM_AVERAGES;
+	return res;
+}
 
 int main(int argc, char **argv)
 {
@@ -149,6 +163,8 @@ int main(int argc, char **argv)
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	//hx711_handle_t* scale1 = hx711_init(15, 17);
 	
+	printf("%d\n", hx711_read_average(scale0));
+
 	for (i = 0; i<600; i++)
 	{
 		printf("%d %d\n", i, hx711_read(scale0));
@@ -159,18 +175,4 @@ int main(int argc, char **argv)
 	//hx711_deinit(scale1);
 
 	return 0;
-
-	/* Blink 20 times */
-/*	val = 0;
-	for (;;) {
-		ret = gpiod_line_set_value(line, val);
-		if (ret < 0) {
-			perror("Set line output failed\n");
-			goto release_line;
-		}
-		//printf("Output %u on line #%u\n", val, line_num);
-		//sleep(1);
-		val = !val;
-	}
-*/
 }
