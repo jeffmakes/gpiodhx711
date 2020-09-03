@@ -12,8 +12,8 @@ typedef struct hx711_handle_t
 	struct gpiod_line *pd_sck;
 	struct gpiod_line *dout;
 	int32_t gain;
-	uint32_t offset;
-	uint32_t scale;
+	int32_t offset;
+	float scale;
 } hx711_handle_t;
 
 hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 
@@ -98,7 +98,7 @@ void printbin(uint32_t p)
 	printf("\n");
 }
 
-int32_t hx711_read(hx711_handle_t* hx)
+int32_t hx711_read_raw(hx711_handle_t* hx)
 {
 	uint32_t i;
 	int32_t val = 0;
@@ -138,10 +138,38 @@ int32_t hx711_read_average(hx711_handle_t* hx)
 	times = NUM_AVERAGES;
 	while(times--)
 	{
-		res += hx711_read(hx);
+		res += hx711_read_raw(hx);
 	}
 	res /= NUM_AVERAGES;
 	return res;
+}
+
+void hx711_set_gain(hx711_handle_t* hx, uint8_t gain)
+{
+	if (gain == 128)
+		hx->gain = 1;
+	if (gain == 64)
+		hx->gain = 3;
+	if (gain == 32)
+		hx->gain = 2;
+}
+
+void hx711_tare(hx711_handle_t* hx)
+{
+	int32_t val;
+
+	val = hx711_read_average(hx);
+	hx->offset = val;
+}
+
+void hx711_set_scale(hx711_handle_t* hx, float scale)
+{
+	hx->scale = scale;
+}
+
+float hx711_read_kg(hx711_handle_t* hx)
+{
+	return (hx711_read_raw(hx) - hx->offset) * hx->scale;
 }
 
 int main(int argc, char **argv)
@@ -164,10 +192,11 @@ int main(int argc, char **argv)
 	//hx711_handle_t* scale1 = hx711_init(15, 17);
 	
 	printf("%d\n", hx711_read_average(scale0));
-
+	hx711_tare(scale0);
+	hx711_set_scale(scale0, 0.0000184267); //assuming Jeff as 100kg proof mass
 	for (i = 0; i<600; i++)
 	{
-		printf("%d %d\n", i, hx711_read(scale0));
+		printf("%d %f\n", i, hx711_read_kg(scale0));
 		sleep(0.1);
 	}
 	
