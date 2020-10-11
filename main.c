@@ -8,51 +8,16 @@
 
 typedef struct hx711_handle_t 
 {
-	struct gpiod_chip *chip;
+    struct gpiod_chip *chip;
 	struct gpiod_line *pd_sck;
 	struct gpiod_line *dout;
-	int32_t gain;
+	struct gpiod_line *en;
+    int32_t gain;
 	int32_t offset;
 	float scale;
 } hx711_handle_t;
 
-int hx711_power(bool enable)
-{
-	char* chipname = "gpiochip0";
-	static struct gpiod_chip *chip;
-	static struct gpiod_line *line_en;
-	unsigned int line_num_en = 12;	// GPIO Pin number for 3v3_EN
-    int32_t req;
-
-	//turn on 3v3 rail
-	chip = gpiod_chip_open_by_name(chipname);
-	if (!chip) {
-		perror("Open chip failed\n");
-		goto end;
-	}
-	line_en = gpiod_chip_get_line(chip, line_num_en);
-	if (!line_en) {
-		perror("Get enable line failed\n");
-		goto close_chip;
-	}
-	req = gpiod_line_request_output(line_en, CONSUMER, 0);
-	if (req < 0) {
-		perror("Request enable line as output failed\n");
-		goto release_line;
-		}
-	gpiod_line_set_value(line_en, enable);
-
-    return 0;
-
-release_line:
-	gpiod_line_release(line_en);
-close_chip:
-	gpiod_chip_close(chip);
-end:
-	return -1;
-}
-
-hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 
+hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout, uint32_t gpio_en) 
 {
 	int32_t req;
 	char* chipname = "gpiochip0";
@@ -69,6 +34,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 		goto end;
 	}
 
+    // Get GPIO lines
 	handle->pd_sck = gpiod_chip_get_line(handle->chip, gpio_pd_sck);
 	if (!handle->pd_sck) {
 		perror("Get clock line failed\n");
@@ -80,15 +46,29 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 		perror("Get data line failed\n");
 		goto close_chip;
 	}
+	
+    handle->en = gpiod_chip_get_line(handle->chip, gpio_en);
+	if (!handle->en) {
+		perror("Get en line failed\n");
+		goto close_chip;
+	}
 
+    // Set GPIO line directions
 	req = gpiod_line_request_output(handle->pd_sck, CONSUMER, 0);
 	if (req < 0) {
 		perror("Request clock line as output failed\n");
 		goto release_line;
 		}
+
 	req = gpiod_line_request_input(handle->dout, CONSUMER);
 	if (req < 0) {
 		perror("Request data line as input failed\n");
+		goto release_line;
+		}
+    
+	req = gpiod_line_request_output(handle->en, CONSUMER, 0);
+	if (req < 0) {
+		perror("Request clock line as output failed\n");
 		goto release_line;
 		}
 
@@ -97,7 +77,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 	handle->offset = 0;
 	handle->scale = 1;	
 	
-
+    hx711_power(handle, true); //turn on the 3.3V rail
 	return handle;
 
 release_line:
@@ -115,6 +95,11 @@ void hx711_deinit(hx711_handle_t* hx)
 	gpiod_line_release(hx->dout);
 	gpiod_chip_close(hx->chip);
 	free(hx);
+}
+
+int hx711_power(hx711_handle_t* hx, bool state)
+{
+    gpiod_line_set_value(hx->en, state);
 }
 
 bool hx711_isready(hx711_handle_t* hx)
@@ -212,8 +197,6 @@ int main(int argc, char **argv)
 {
 	char *chipname = "gpiochip0";
 	unsigned int i;
-
-    hx711_power(true);
 
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	hx711_handle_t* scale1 = hx711_init(15, 17);
