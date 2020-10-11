@@ -16,6 +16,42 @@ typedef struct hx711_handle_t
 	float scale;
 } hx711_handle_t;
 
+int hx711_power(bool enable)
+{
+	char* chipname = "gpiochip0";
+	static struct gpiod_chip *chip;
+	static struct gpiod_line *line_en;
+	unsigned int line_num_en = 12;	// GPIO Pin number for 3v3_EN
+    int32_t req;
+
+	//turn on 3v3 rail
+	chip = gpiod_chip_open_by_name(chipname);
+	if (!chip) {
+		perror("Open chip failed\n");
+		goto end;
+	}
+	line_en = gpiod_chip_get_line(chip, line_num_en);
+	if (!line_en) {
+		perror("Get enable line failed\n");
+		goto close_chip;
+	}
+	req = gpiod_line_request_output(line_en, CONSUMER, 0);
+	if (req < 0) {
+		perror("Request enable line as output failed\n");
+		goto release_line;
+		}
+	gpiod_line_set_value(line_en, enable);
+
+    return 0;
+
+release_line:
+	gpiod_line_release(line_en);
+close_chip:
+	gpiod_chip_close(chip);
+end:
+	return -1;
+}
+
 hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 
 {
 	int32_t req;
@@ -175,18 +211,9 @@ float hx711_read_kg(hx711_handle_t* hx)
 int main(int argc, char **argv)
 {
 	char *chipname = "gpiochip0";
-	unsigned int line_num = 12;	// GPIO Pin number for 3v3_EN
-	unsigned int val;
-	struct gpiod_chip *chip;
-	struct gpiod_line *line;
-	int i, ret;
+	unsigned int i;
 
-	//turn on 3v3 rail
-	chip = gpiod_chip_open_by_name(chipname);
-	line= gpiod_chip_get_line(chip, line_num);
-	gpiod_line_request_output(line, CONSUMER, 0);
-	gpiod_line_set_value(line, 1);
-
+    hx711_power(true);
 
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	hx711_handle_t* scale1 = hx711_init(15, 17);
