@@ -1,6 +1,6 @@
 PROJ=libgpiod-hx711
 CC=cc
-SRC=main.c
+SRC=main.c hx711.c
 LIBS=-lgpiod
 CFLAGS=-D CONSUMER=\"$(PROJ)\" 
 CFLAGS+=-g3
