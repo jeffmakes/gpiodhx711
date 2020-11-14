@@ -88,7 +88,7 @@ void hx711_deinit(hx711_handle_t* hx)
 	free(hx);
 }
 
-int hx711_power(hx711_handle_t* hx, bool state)
+void hx711_power(hx711_handle_t* hx, bool state)
 {
     gpiod_line_set_value(hx->en, state);
 }
