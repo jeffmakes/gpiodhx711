@@ -10,11 +10,6 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 	int32_t req;
 	char* chipname = CHIPNAME;
 
-    if (hx711_power_init()){
-        perror("Error initialising power enable line");
-        goto end;
-    }
-
 	hx711_handle_t* handle = malloc(sizeof(hx711_handle_t));
 	if (!handle){
 		perror("malloc failed");
@@ -103,7 +98,6 @@ bool hx711_power_init()
 		goto release_line;
 	}
     return false;
-    printf("power init done");
 release_line:
 	gpiod_line_release(power_en);
 end: 
@@ -171,13 +165,17 @@ int32_t hx711_read_average(hx711_handle_t* hx)
 	uint32_t times;
 	int32_t res = 0;
 
+    hx711_read_raw(hx);     //First value read after init is often junk. Dump a few values before computing average
+    hx711_read_raw(hx);
+    hx711_read_raw(hx);
+
 	times = NUM_AVERAGES;
 	while(times--)
 	{
 		res += hx711_read_raw(hx);
 	}
 	res /= NUM_AVERAGES;
-	return res;
+ 	return res;
 }
 
 void hx711_set_gain(hx711_handle_t* hx, uint8_t gain)
