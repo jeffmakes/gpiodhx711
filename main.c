@@ -10,6 +10,7 @@ int main(int argc, char **argv)
 
 	hx711_handle_t* scale0 = hx711_init(4, 14);
 	hx711_handle_t* scale1 = hx711_init(15, 17);
+    hx711_power_init();
     hx711_set_power(true);
 
 	//printf("%d\n", hx711_read_average(scale0));
