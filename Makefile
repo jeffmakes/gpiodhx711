@@ -1,11 +1,14 @@
-PROJ=libgpiodhx711
+PROJ=libhx711
 CC=cc
-SRC=main.c hx711.c
+AR=ar
+SRC=main.c libhx711.c
 LIBS=-lgpiod
 CFLAGS=-D CONSUMER=\"$(PROJ)\" 
 CFLAGS+=-g3
 all:
-	$(CC) $(SRC) $(LIBS) $(CFLAGS) -o $(PROJ)
-
+	$(CC) -c $(SRC) $(LIBS) $(CFLAGS) 
+	$(AR) cr libhx711.a libhx711.o
+	$(CC) $(LIBS) main.o libhx711.a -o $(PROJ)
+	rm -f *.o
 clean:
-	rm $(PROJ)
+	rm -f $(PROJ) *.o *.a
