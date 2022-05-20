@@ -1,2 +1,4 @@
 libgpiodhx711
+*.o
+*.a
 
