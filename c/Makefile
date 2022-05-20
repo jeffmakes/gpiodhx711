@@ -9,6 +9,7 @@ all:
 	$(CC) -c $(SRC) $(LIBS) $(CFLAGS) 
 	$(AR) cr gpiodhx711.a gpiodhx711.o
 	$(CC) $(LIBS) main.o gpiodhx711.a -o $(PROJ)
-	rm -f *.o
+	mkdir -p build
+	mv $(PROJ) *.a *.o build
 clean:
-	rm -f $(PROJ) *.o *.a
+	rm -rf build
