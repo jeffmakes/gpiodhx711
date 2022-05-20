@@ -1,4 +1,4 @@
-PROJ=libgpiod-hx711
+PROJ=libgpiodhx711
 CC=cc
 SRC=main.c hx711.c
 LIBS=-lgpiod
