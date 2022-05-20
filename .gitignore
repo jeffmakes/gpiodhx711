@@ -1,3 +1,5 @@
+c/build
+python/build
 libhx711
 *.o
 *.a
