@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
-#include "hx711.h"
+#include "libhx711.h"
 
     
 hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 

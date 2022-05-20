@@ -1,5 +1,5 @@
-#ifndef __HX711_H
-#define __HX711_H
+#ifndef __LIBHX711_H
+#define __LIBHX711_H
 
 #include <gpiod.h>
 #include <stdint.h>
@@ -37,4 +37,4 @@ void hx711_set_gain(hx711_handle_t* hx, uint8_t gain);
 void hx711_set_scale(hx711_handle_t* hx, float scale);
 void hx711_tare(hx711_handle_t* hx);
 
-#endif // __HX711_H 
+#endif // __LIBHX711_H 
