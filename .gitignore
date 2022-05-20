@@ -1,5 +1,6 @@
 c/build
 python/build
+python/.eggs
 libhx711
 *.o
 *.a
