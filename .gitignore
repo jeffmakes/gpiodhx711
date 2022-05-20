@@ -1,4 +1,4 @@
-libgpiodhx711
+libhx711
 *.o
 *.a
 
