@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "libhx711.h"
+#include "../include/libhx711.h"
 
 
 int main(int argc, char **argv)

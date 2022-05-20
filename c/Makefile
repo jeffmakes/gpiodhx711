@@ -1,7 +1,7 @@
 PROJ=libhx711
 CC=cc
 AR=ar
-SRC=main.c libhx711.c
+SRC=src/main.c src/libhx711.c
 LIBS=-lgpiod
 CFLAGS=-D CONSUMER=\"$(PROJ)\" 
 CFLAGS+=-g3
