@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include "../include/gpiodhx711.h"
 
-    
-hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout) 
+struct gpiod_line *global_power_en = NULL; // All scales share one power control GPIO. First one to be initialised sets this variable
+
+hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout, uint32_t gpio_power_en) 
 {
 	int32_t req;
 	char* chipname = CHIPNAME;
@@ -34,8 +35,22 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 		perror("Get data line failed");
 		goto close_chip;
 	}
+
+    if (global_power_en == NULL) {
+        global_power_en = gpiod_chip_get_line(handle->chip, gpio_power_en);
+        if (!global_power_en) {
+            perror("Get power line failed");
+            goto close_chip;
+        }
+        req = gpiod_line_request_output(global_power_en, CONSUMER, 0);
+        if (req < 0) {
+            perror("Request power line as output failed");
+            goto release_line;
+            }
+    }
+    handle->power_en = global_power_en;
 	
-    printf("sck %d   dout %d\n", gpio_pd_sck, gpio_dout);
+    printf("sck %d   dout %d   power_en %d\n", gpio_pd_sck, gpio_dout, gpio_power_en);
     // Set GPIO line directions
 	req = gpiod_line_request_output(handle->pd_sck, CONSUMER, 0);
 	if (req < 0) {
@@ -49,6 +64,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 		goto release_line;
 		}
     
+
 	//set defaults
 	handle->gain = 1; // set default gain to 128
 	handle->offset = 0;
@@ -59,6 +75,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout)
 release_line:
 	gpiod_line_release(handle->pd_sck);
 	gpiod_line_release(handle->dout);
+	gpiod_line_release(handle->power_en);
 close_chip:
 	gpiod_chip_close(handle->chip);
 end:
@@ -73,40 +90,9 @@ void hx711_deinit(hx711_handle_t* hx)
 	free(hx);
 }
 
-struct gpiod_line *power_en = NULL;
-struct gpiod_chip *power_chip = NULL;
-bool hx711_power_init()
+void hx711_set_power(hx711_handle_t* hx, bool state)
 {
-    char* chipname = CHIPNAME;
-    if (power_en != NULL)       // Don't initialise if we've already done so.
-        return false;
-
-	power_chip = gpiod_chip_open_by_name(CHIPNAME);
-	if (!power_chip) {
-		perror("Power init: open chip failed");
-		goto end;
-	}
-
-    // Get GPIO lines
-	power_en = gpiod_chip_get_line(power_chip, PIN_3V3EN);
-	if (!power_en) {
-		perror("Power init: get en line failed");
-		goto end;
-	}
-	if (gpiod_line_request_output(power_en, CONSUMER, 0) < 0){
-		perror("Request en line as output failed");
-		goto release_line;
-	}
-    return false;
-release_line:
-	gpiod_line_release(power_en);
-end: 
-    return true;
-}
-
-void hx711_set_power(bool state)
-{
-    if (gpiod_line_set_value(power_en, state)){
+    if (gpiod_line_set_value(hx->power_en, state)){
         perror("Failed to set power EN line");
     }
 }

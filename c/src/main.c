@@ -8,10 +8,10 @@ int main(int argc, char **argv)
 	char *chipname = "gpiochip0";
 	unsigned int i;
 
-	hx711_handle_t* scale0 = hx711_init(4, 14);
-	hx711_handle_t* scale1 = hx711_init(15, 17);
-    hx711_power_init();
-    hx711_set_power(true);
+	hx711_handle_t* scale0 = hx711_init(4, 14, 12);
+	hx711_handle_t* scale1 = hx711_init(15, 17, 12);
+    hx711_set_power(scale0, true);
+    hx711_set_power(scale1, true);
 
 	//printf("%d\n", hx711_read_average(scale0));
 	//printf("%d\n", hx711_read_average(scale1));
