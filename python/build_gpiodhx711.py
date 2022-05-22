@@ -13,9 +13,13 @@ ffibuilder.set_source(
     "_gpiodhx711",
     """
     #include <gpiodhx711.h>
+    #include "/usr/include/gpiod.h" 
     """,
+
     extra_objects=[hx_lib_path],
     include_dirs=[hx_include_path],
+    libraries=["gpiod"],
+    extra_compile_args=["-lgpiod"]
 )
 
 ffibuilder.cdef("""
