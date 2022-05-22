@@ -4,7 +4,7 @@ AR=ar
 SRC=src/main.c src/gpiodhx711.c
 LIBS=-lgpiod
 CFLAGS=-D CONSUMER=\"$(PROJ)\" 
-CFLAGS+=-g3
+CFLAGS+=-g3 -fPIC
 all:
 	$(CC) -c $(SRC) $(LIBS) $(CFLAGS) 
 	$(AR) cr libgpiodhx711.a gpiodhx711.o
