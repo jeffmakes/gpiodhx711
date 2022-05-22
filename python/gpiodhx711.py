@@ -23,14 +23,18 @@ class GpiodHx711:
 
 def main():
     scale0 = GpiodHx711(4, 14, 12)
+    scale1 = GpiodHx711(15, 17, 12)
     scale0.set_power(True)
+    scale1.set_power(True)
 
     scale0.tare()
     scale0.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
+    scale1.tare()
+    scale1.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
 
     for i in range (500):
         kg = scale0.read_kg()
-        print(kg)
+        print("Scale 0: {:.2f} kg   Scale 1: {:.2f} kg".format(scale0.read_kg(), scale1.read_kg()))
 
 
 if __name__ == "__main__":
