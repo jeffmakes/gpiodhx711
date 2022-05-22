@@ -1,6 +1,8 @@
 c/build
 python/build
 python/.eggs
+python/_gpiodhx711.abi3.so
+python/gpiodhx711.egg-info/
 libhx711
 *.o
 *.a
