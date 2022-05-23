@@ -8,4 +8,9 @@ setup(name="gpiodhx711",
       setup_requires=["cffi", "path"],
       cffi_modules=["build_gpiodhx711.py:ffibuilder"],
       install_requires=["cffi"],
+      entry_points={
+        'console_scripts': [
+            'gpiodhx711 = gpiodhx711.gpiodhx711:GpiodHx711'
+        ]
+    }
 )
