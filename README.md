@@ -1,26 +1,38 @@
 Building
 --------
 
-C library and test program. This creates the libgpiodhx711.a archive.
+Install C dependencies:
 
+For building libgpiodhx711.a:
+libgpiod2
+libgpiod-dev
+gpiod
+
+For building the python extension:
+libpython3.9-dev
+python-dev
+
+Build the C library and test program. This creates the libgpiodhx711.a archive:
 cd gpiodhx711/c
 make
 
 Python bindings:
 
-1) Activate the virtual environment:
+0) Create a new venv:
 cd gpiod/python
+python3 -m venv venv
+
+1) Activate the virtual environment:
 source venv/bin/activate
 
-2) Build the extension. This creates the _gpiodhx711.c file and compiles it, along with libgpiodhx711.a, and links in the gpiod library from the system. The output is 
+2) On RPiOS I had to install some surprisingly missing python dependencies:
+pip install setuptools wheel
+
+3) Build and install the extension. This creates the _gpiodhx711.c file and compiles it, along with libgpiodhx711.a, and links in the gpiod library from the system. The output is 
 _gpiodhx711.abi3.so: 
 
-python setup.py build_ext
-
-3) Not exactly sure what the next step does - it creates a copy of _gpiodhx711.abi3.so from the build folder to the root. It also creates gpiodhx711.egg-info folder. So I guess it's building the python project/package/egg/wheel (Not sure which, nor how they differ):
-
 python setup.py develop
-and/or? 
+or 
 python setup.py install
 
 
