@@ -8,7 +8,7 @@ CFLAGS+=-g3 -fPIC
 all:
 	$(CC) -c $(SRC) $(LIBS) $(CFLAGS) 
 	$(AR) cr libgpiodhx711.a gpiodhx711.o
-	$(CC) $(LIBS) main.o libgpiodhx711.a -o $(PROJ)
+	$(CC) main.o libgpiodhx711.a $(LIBS) -o $(PROJ)
 	mkdir -p build
 	mv $(PROJ) *.a *.o build
 clean:
