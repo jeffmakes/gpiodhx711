@@ -1,11 +1,3 @@
-build==0.7.0
 cffi==1.15.0
-gpiod==1.5.3
--e git+ssh://git@github.com/jeffmakes/libgpiodhx711.git@bce5ab42a2f1e1247d8aaa211fca70b44126ff16#egg=gpiodhx711&subdirectory=python
-packaging==21.3
-pep517==0.12.0
+-e git+git@github.com:jeffmakes/libgpiodhx711.git@9a7f9ab22ce802b653f90eaa5b5b91848f3867fd#egg=gpiodhx711&subdirectory=python
 pycparser==2.21
-pylibgpiod-hx711-jeffmakes @ file:///home/somnolence/repos/pylibgpiod-hx711-pkg
-pyparsing==3.0.9
-RPi.GPIO==0.7.1
-tomli==2.0.1
