@@ -5,7 +5,7 @@ class GpiodHx711:
     def __init__(self, gpio_sck, gpio_dout, gpio_power_en):
         self._hx = lib.hx711_init(gpio_sck, gpio_dout, gpio_power_en)
     
-    def __del__(self):
+    def deinit(self):
         lib.hx711_deinit(self._hx)
 
     def set_power(self, value):
@@ -22,19 +22,29 @@ class GpiodHx711:
 
 
 def main():
-    scale0 = GpiodHx711(4, 14, 12)
-    scale1 = GpiodHx711(15, 17, 12)
-    scale0.set_power(True)
-    scale1.set_power(True)
+    try:
+        scale0 = GpiodHx711(4, 14, 12)
+        scale1 = GpiodHx711(15, 17, 12)
 
-    scale0.tare()
-    scale0.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
-    scale1.tare()
-    scale1.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
+        scale0.set_power(True)
+        scale1.set_power(True)
 
-    for i in range (500):
-        kg = scale0.read_kg()
-        print("Scale 0: {:.2f} kg   Scale 1: {:.2f} kg".format(scale0.read_kg(), scale1.read_kg()))
+        scale0.tare()
+        scale0.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
+        scale1.tare()
+        scale1.set_scale(0.0000184267) #assuming Jeff as 100kg proof mass
+
+        for i in range (500):
+            kg = scale0.read_kg()
+            print("Scale 0: {:.2f} kg   Scale 1: {:.2f} kg".format(scale0.read_kg(), scale1.read_kg()))
+
+    except:
+        print("Something broke")
+    finally:
+        print("Clearing up...")
+        scale0.deinit()
+        scale1.deinit()
+
 
 
 if __name__ == "__main__":

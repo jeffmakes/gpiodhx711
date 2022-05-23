@@ -5,6 +5,7 @@
 #include "../include/gpiodhx711.h"
 
 struct gpiod_line *global_power_en = NULL; // All scales share one power control GPIO. First one to be initialised sets this variable
+uint32_t scales_initialised = 0;
 
 hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout, uint32_t gpio_power_en) 
 {
@@ -70,6 +71,7 @@ hx711_handle_t* hx711_init(uint32_t gpio_pd_sck, uint32_t gpio_dout, uint32_t gp
 	handle->offset = 0;
 	handle->scale = 1;	
 	
+    scales_initialised++;
 	return handle;
 
 release_line:
@@ -84,16 +86,27 @@ end:
 
 void hx711_deinit(hx711_handle_t* hx)
 {
+    printf("deinitialising scale - count: %d\n", scales_initialised);
 	gpiod_line_release(hx->pd_sck);
 	gpiod_line_release(hx->dout);
-	gpiod_chip_close(hx->chip);
+
+    scales_initialised--;
+    if (scales_initialised == 0)
+    {
+        printf("Last scale deinitialised - turn off power and release power_en line\n");
+        hx711_set_power(hx, false);
+        gpiod_line_release(global_power_en);
+        gpiod_chip_close(hx->chip);
+    }
 	free(hx);
 }
 
 void hx711_set_power(hx711_handle_t* hx, bool state)
 {
-    if (gpiod_line_set_value(hx->power_en, state)){
-        perror("Failed to set power EN line");
+    if (hx->power_en){
+        if (gpiod_line_set_value(hx->power_en, state)){
+            perror("Failed to set power EN line");
+        }
     }
 }
 
